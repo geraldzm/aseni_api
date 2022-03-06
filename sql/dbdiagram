@@ -1,0 +1,68 @@
+
+Table usrs {
+  usr_id int [pk, increment]
+  bio varcharacter(256)
+  id int [not null] // cedula
+  
+  canton_id int [ref: > cantons.canton_id]
+  rol_id int [ref: > rols.rol_id]
+  political_party_id int [ref: > pp.pp_id]
+} 
+
+Table rols {
+  rol_id int [pk, increment]
+  name varcharacter(32) [unique, not null]
+}
+
+Table political_parties as pp {
+    pp_id int [pk, increment]
+    name varcharacter(32)
+    
+    flag_image varcharacter(512)
+}
+
+Table cantons {
+  canton_id int [pk, increment]
+  name varcharacter(32) [not null]
+}
+
+Table plans {
+  plan_id int [pk, increment]
+  title varcharacter(32) [not null]
+  description varcharacter(512) [not null]
+  
+  pp_id int [ref: > pp.pp_id]
+}
+
+Table deliverables {
+  deliverable_id int [pk, increment]
+  deadline datetime [not null]
+  kpi int [not null]
+  score smallint [default: 0] // final score
+  
+  action_id int [ref: > actions.action_id]
+  kpi_type_id int [ref: > kpi_types.kpi_type_id]
+  canton_id int [ref: > cantons.canton_id]
+  plan_id int [ref: > plans.plan_id]
+}
+
+Table deliverable_scores {
+  deliverable_scores int [pk, increment]
+  score smallint [not null]
+  checksum varcharacter(64)
+  
+  deliverable_id int [ref: > deliverables.deliverable_id]
+  usr_id int [ref: > usrs.usr_id]
+}
+
+Table actions {
+  action_id int [pk, increment]
+  action varcharacter(512) [not null]
+}
+
+Table kpi_types {
+  kpi_type_id int [pk, increment]
+  name varcharacter(32)
+}
+ 
+ 
