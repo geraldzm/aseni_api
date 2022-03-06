@@ -40,6 +40,7 @@ Table deliverables {
   kpi int [not null]
   score smallint [default: 0] // final score
   
+  governmet_period_id int [ref: > governmet_periods.governmet_period_id]
   action_id int [ref: > actions.action_id]
   kpi_type_id int [ref: > kpi_types.kpi_type_id]
   canton_id int [ref: > cantons.canton_id]
@@ -55,6 +56,12 @@ Table deliverable_scores {
   usr_id int [ref: > usrs.usr_id]
 }
 
+Table governmet_periods { //government period calendar
+  governmet_period_id int [pk, increment]
+  start datetime [not null]
+  end datetime [not null]
+}
+
 Table actions {
   action_id int [pk, increment]
   action varcharacter(512) [not null]
@@ -64,5 +71,3 @@ Table kpi_types {
   kpi_type_id int [pk, increment]
   name varcharacter(32)
 }
- 
- 
