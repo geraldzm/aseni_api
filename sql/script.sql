@@ -42,7 +42,7 @@ CREATE TABLE [deliverables] (
   [deliverable_id] int PRIMARY KEY IDENTITY(1, 1),
   [deadline] datetime NOT NULL,
   [kpi] int NOT NULL,
-  [score] float DEFAULT (0),
+  [score] smallint DEFAULT (0),
   [governmet_period_id] int,
   [action_id] int,
   [kpi_type_id] int,
@@ -53,7 +53,7 @@ GO
 
 CREATE TABLE [deliverable_scores] (
   [deliverable_scores] int PRIMARY KEY IDENTITY(1, 1),
-  [score] float NOT NULL,
+  [score] smallint NOT NULL,
   [checksum] character(64),
   [deliverable_id] int,
   [usr_id] int
@@ -214,7 +214,7 @@ DECLARE
     @usr INT = (select count(*) from usrs),
     @deliCant INT,
     @d_id INT,
-    @random float;
+    @random smallint;
 
 while @usr > 0 -- per user
 begin
@@ -234,10 +234,10 @@ begin
         begin
 
             select top 1 @d_id = dId from #deliverable_id; --get delivery id
-            set @random = ROUND(RAND(),2);
+            set @random = FLOOR(RAND()*(100+1));--  random number between 100 and 0
             insert into deliverable_scores (score, checksum, deliverable_id, usr_id)
-            values (@random, --  random number between 0 and 1
-            CHECKSUM(@random,@usr,@random,@deliCant,@d_id),
+            values (@random, 
+            ABS(CHECKSUM(@random,@usr,@random,@deliCant,@d_id)),
             @d_id,
             @usr);
 

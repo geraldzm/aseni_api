@@ -3,6 +3,7 @@ import * as bodyParser from 'body-parser';
 import { Logger } from '../common';
 import {kindnessrouter} from './kindness';
 import {articlesrouter} from './articlesrouter';
+import {consultrouter} from './consultsrouter';
 
 class Routes {
 
@@ -19,13 +20,14 @@ class Routes {
 
     // Configure Express middleware.
     private middleware(): void {
-        this.express.use(bodyParser.json());
-        this.express.use(bodyParser.urlencoded({ extended: false }));
+        this.express.use(express.json());
+        this.express.use(express.urlencoded({ extended: false }));
     }
 
     private routes(): void {
         this.express.use('/kind', kindnessrouter);
         this.express.use('/articles', articlesrouter);
+        this.express.use('/consult', consultrouter);
         this.logger.info("Kindness route loaded");
     }
 }
