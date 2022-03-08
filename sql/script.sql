@@ -2,8 +2,8 @@
 
 CREATE TABLE [usrs] (
   [usr_id] int PRIMARY KEY IDENTITY(1, 1),
-  [name] character(32),
-  [bio] character(256),
+  [name] varchar(32),
+  [bio] varchar(256),
   [id] int NOT NULL,
   [canton_id] int,
   [rol_id] int,
@@ -13,27 +13,27 @@ GO
 
 CREATE TABLE [rols] (
   [rol_id] int PRIMARY KEY IDENTITY(1, 1),
-  [name] character(32) UNIQUE NOT NULL
+  [name] varchar(32) UNIQUE NOT NULL
 )
 GO
 
 CREATE TABLE [political_parties] (
   [pp_id] int PRIMARY KEY IDENTITY(1, 1),
-  [name] character(32),
-  [flag_image] character(512)
+  [name] varchar(32),
+  [flag_image] varchar(512)
 )
 GO
 
 CREATE TABLE [cantons] (
   [canton_id] int PRIMARY KEY IDENTITY(1, 1),
-  [name] character(32) NOT NULL
+  [name] varchar(32) NOT NULL
 )
 GO
 
 CREATE TABLE [plans] (
   [plan_id] int PRIMARY KEY IDENTITY(1, 1),
-  [title] character(32) NOT NULL,
-  [description] character(512) NOT NULL,
+  [title] varchar(32) NOT NULL,
+  [description] varchar(512) NOT NULL,
   [pp_id] int
 )
 GO
@@ -54,7 +54,7 @@ GO
 CREATE TABLE [deliverable_scores] (
   [deliverable_scores] int PRIMARY KEY IDENTITY(1, 1),
   [score] smallint NOT NULL,
-  [checksum] character(64),
+  [checksum] varchar(64),
   [deliverable_id] int,
   [usr_id] int
 )
@@ -69,13 +69,13 @@ GO
 
 CREATE TABLE [actions] (
   [action_id] int PRIMARY KEY IDENTITY(1, 1),
-  [action] character(512) NOT NULL
+  [action] varchar(512) NOT NULL
 )
 GO
 
 CREATE TABLE [kpi_types] (
   [kpi_type_id] int PRIMARY KEY IDENTITY(1, 1),
-  [name] character(32)
+  [name] varchar(32)
 )
 GO
 

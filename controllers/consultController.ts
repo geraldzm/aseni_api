@@ -35,7 +35,7 @@ export class ConsultController {
         try {
             // make sure that any items are correctly URL encoded in the connection string
             let pool =  await sql.connect(sqlConfig)//sql config esta dbconfig.ts
-            let result =  await pool.request().query('select * from cantons')
+            let result =  await pool.request().query('select * from deliverable_scores where deliverable_id = 1')
             return result
             //console.log(result)
         } catch (err) {
