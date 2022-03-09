@@ -1,5 +1,5 @@
 -- ############################################################ DATABASE ############################################################
-
+DROP TABLE IF EXISTS usrs;
 CREATE TABLE [usrs] (
   [usr_id] int PRIMARY KEY IDENTITY(1, 1),
   [name] varchar(32),
@@ -11,12 +11,14 @@ CREATE TABLE [usrs] (
 )
 GO
 
+DROP TABLE IF EXISTS rols;
 CREATE TABLE [rols] (
   [rol_id] int PRIMARY KEY IDENTITY(1, 1),
   [name] varchar(32) UNIQUE NOT NULL
 )
 GO
 
+DROP TABLE IF EXISTS political_parties;
 CREATE TABLE [political_parties] (
   [pp_id] int PRIMARY KEY IDENTITY(1, 1),
   [name] varchar(32),
@@ -24,12 +26,14 @@ CREATE TABLE [political_parties] (
 )
 GO
 
+DROP TABLE IF EXISTS cantons;
 CREATE TABLE [cantons] (
   [canton_id] int PRIMARY KEY IDENTITY(1, 1),
   [name] varchar(32) NOT NULL
 )
 GO
 
+DROP TABLE IF EXISTS plans;
 CREATE TABLE [plans] (
   [plan_id] int PRIMARY KEY IDENTITY(1, 1),
   [title] varchar(32) NOT NULL,
@@ -38,6 +42,7 @@ CREATE TABLE [plans] (
 )
 GO
 
+DROP TABLE IF EXISTS deliverables;
 CREATE TABLE [deliverables] (
   [deliverable_id] int PRIMARY KEY IDENTITY(1, 1),
   [deadline] datetime NOT NULL,
@@ -51,6 +56,7 @@ CREATE TABLE [deliverables] (
 )
 GO
 
+DROP TABLE IF EXISTS deliverable_scores;
 CREATE TABLE [deliverable_scores] (
   [deliverable_scores] int PRIMARY KEY IDENTITY(1, 1),
   [score] smallint NOT NULL,
@@ -60,6 +66,7 @@ CREATE TABLE [deliverable_scores] (
 )
 GO
 
+DROP TABLE IF EXISTS governmet_periods;
 CREATE TABLE [governmet_periods] (
   [governmet_period_id] int PRIMARY KEY IDENTITY(1, 1),
   [start] datetime NOT NULL,
@@ -67,12 +74,14 @@ CREATE TABLE [governmet_periods] (
 )
 GO
 
+DROP TABLE IF EXISTS actions;
 CREATE TABLE [actions] (
   [action_id] int PRIMARY KEY IDENTITY(1, 1),
   [action] varchar(512) NOT NULL
 )
 GO
 
+DROP TABLE IF EXISTS kpi_types;
 CREATE TABLE [kpi_types] (
   [kpi_type_id] int PRIMARY KEY IDENTITY(1, 1),
   [name] varchar(32)
@@ -190,9 +199,9 @@ begin
             select top 1 @c = canton_id from #canton_ids;
 
             insert into deliverables (deadline, kpi, governmet_period_id, action_id, kpi_type_id, canton_id, plan_id)
-            values (DATEADD(DAY, ABS(CHECKSUM(NEWID()) % 1460), '2022-08-04'), --  random day between in 4 years
-            FLOOR(RAND()*10)+1,
-            1,
+            values (DATEADD(DAY, ABS(CHECKSUM(NEWID()) % 1460), '2022-08-04'), --  random day within the next 4 years
+            FLOOR(RAND()*10)+1, -- kpi
+            1, -- governmet period
             @actions,
             @actions,
             @c,
@@ -209,7 +218,9 @@ begin
     set @parties = @parties - 1
 end
 
--- insert scores
+
+
+-- INSERT SCORES
 DECLARE
     @usr INT = (select count(*) from usrs),
     @deliCant INT,
@@ -228,7 +239,7 @@ begin
     order by dId;
 
     begin
-        set @deliCant = (select count(*) from #deliverable_id);--Deliveries to calificate
+        set @deliCant = FLOOR(RAND()*((select count(*) from #deliverable_id)+1)); --Deliveries to calificate
 
         while @deliCant > 0 --Deliveries to calificate
         begin
@@ -236,13 +247,13 @@ begin
             select top 1 @d_id = dId from #deliverable_id; --get delivery id
             set @random = FLOOR(RAND()*(100+1));--  random number between 100 and 0
             insert into deliverable_scores (score, checksum, deliverable_id, usr_id)
-            values (@random, 
-            ABS(CHECKSUM(@random,@usr,@random,@deliCant,@d_id)),
+            values (@random,
+            ABS(CHECKSUM(@random,@usr,@random,@deliCant,@d_id, 'myPrivateKey(sdfjlxkc#j123v)')),
             @d_id,
             @usr);
 
             --Update score deliberables
-            update deliverables  set score = score + @random where deliverable_id = @d_id
+            update deliverables set score = score + @random where deliverable_id = @d_id;
             delete from #deliverable_id where dId = @d_id;
             set @deliCant = @deliCant - 1;
 
@@ -252,3 +263,55 @@ begin
 
     set @usr = @usr - 1
 end
+
+
+-- ############################################################ QUERIES ############################################################
+
+-- Query 1
+-- Listar los cantones que recibirán
+-- entregables en los primeros 100
+-- días de gobierno, pero que no
+-- recibirán nada en los últimos  100
+---------> except, intersect, set difference, datepart
+select
+distinct c.name --, gp.start, d.deadline
+from deliverables d
+inner join cantons c on d.canton_id = c.canton_id
+inner join governmet_periods gp on d.governmet_period_id = gp.governmet_period_id
+where deadline between gp.start and DATEADD(DAY, 100, gp.start)
+EXCEPT --
+select
+distinct c.name-- , gp.[end], d.deadline
+from deliverables d
+inner join cantons c on d.canton_id = c.canton_id
+inner join governmet_periods gp on d.governmet_period_id = gp.governmet_period_id
+where deadline between DATEDIFF(DAY, 100, gp.[end])  and gp.[end];
+
+
+-- Query 2
+-- Para una misma acción en un
+-- mismo partido, sacar la
+-- densidad para todos los
+-- cantones que hay en los rangos
+-- de satisfacción del primer,
+-- segundo y tercer tercio
+---------> dense_rank, pivot tables
+SELECT name, action, [0] * 100 / ([0] + [1] + [2]) as '1/3', [1]* 100 / ([0] + [1] + [2]) as '2/3', [2] * 100 / ([0] + [1] + [2]) as '3/3'
+--SELECT name, action, [0] as '1/3', [1] as '2/3', [2] as '3/3'
+FROM (
+     SELECT pp.name,
+            a.action,
+            CASE
+                WHEN d.score <= 33 THEN 0
+                WHEN d.score <= 66 THEN 1
+                ELSE 2
+                END as clasification
+     FROM deliverables d
+              INNER JOIN plans p on d.plan_id = p.plan_id
+              INNER JOIN political_parties pp on p.pp_id = pp.pp_id
+              INNER JOIN actions a on d.action_id = a.action_id
+     ) d
+    pivot (
+          COUNT (clasification)
+          FOR clasification IN ([0], [1], [2])
+     ) piv
