@@ -273,6 +273,20 @@ end
 -- días de gobierno, pero que no
 -- recibirán nada en los últimos  100
 ---------> except, intersect, set difference, datepart
+DROP VIEW IF EXISTS qr1First
+GO
+CREATE VIEW qr1First as
+    select
+    distinct c.name --, gp.start, d.deadline
+    from deliverables d
+    inner join cantons c on d.canton_id = c.canton_id
+    inner join governmet_periods gp on d.governmet_period_id = gp.governmet_period_id
+    where deadline between gp.start and DATEADD(DAY, 100, gp.start)
+GO
+
+DROP VIEW IF EXISTS qr1Second
+GO
+CREATE VIEW qr1Second as
 select
 distinct c.name --, gp.start, d.deadline
 from deliverables d
@@ -285,7 +299,8 @@ distinct c.name-- , gp.[end], d.deadline
 from deliverables d
 inner join cantons c on d.canton_id = c.canton_id
 inner join governmet_periods gp on d.governmet_period_id = gp.governmet_period_id
-where deadline between DATEDIFF(DAY, 100, gp.[end])  and gp.[end];
+where deadline between DATEDIFF(DAY, 100, gp.[end])  and gp.[end]
+GO
 
 
 -- Query 2
@@ -296,6 +311,9 @@ where deadline between DATEDIFF(DAY, 100, gp.[end])  and gp.[end];
 -- de satisfacción del primer,
 -- segundo y tercer tercio
 ---------> dense_rank, pivot tables
+DROP VIEW IF EXISTS qr2
+GO
+CREATE VIEW qr2 as
 SELECT name, action, [0] * 100 / ([0] + [1] + [2]) as '1/3', [1]* 100 / ([0] + [1] + [2]) as '2/3', [2] * 100 / ([0] + [1] + [2]) as '3/3'
 --SELECT name, action, [0] as '1/3', [1] as '2/3', [2] as '3/3'
 FROM (
@@ -315,3 +333,4 @@ FROM (
           COUNT (clasification)
           FOR clasification IN ([0], [1], [2])
      ) piv
+GO

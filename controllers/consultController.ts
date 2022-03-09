@@ -1,9 +1,5 @@
+import { consultData } from '../repositories/data_consult'
 import { Logger } from '../common'
-
-//Sql server
-const sql = require('mssql');
-import {sqlConfig} from "../DB/dbconfig"
-//Sql server
 
 
 export class ConsultController {
@@ -30,17 +26,27 @@ export class ConsultController {
         return this.instance;
     }
 
-    public async getCantones()
+    public async test() : Promise<any> 
     {
-        try {
-            // make sure that any items are correctly URL encoded in the connection string
-            let pool =  await sql.connect(sqlConfig)//sql config esta dbconfig.ts
-            let result =  await pool.request().query('select * from deliverable_scores where deliverable_id = 1')
-            return result
-            //console.log(result)
-        } catch (err) {
-            console.log(err)
-        }
+        const model = new consultData();
+        return model.testConec();
+    }
+    
+    public async query1F() : Promise<any> 
+    {
+        const model = new consultData();
+        return model.query1F();
     }
 
+    public async query1S() : Promise<any> 
+    {
+        const model = new consultData();
+        return model.query1S();
+    }
+
+    public async query2() : Promise<any> 
+    {
+        const model = new consultData();
+        return model.query2();
+    }
 }

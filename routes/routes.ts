@@ -27,7 +27,7 @@ class Routes {
     private routes(): void {
         this.express.use('/kind', kindnessrouter);
         this.express.use('/articles', articlesrouter);
-        this.express.use('/consult', consultrouter);
+        this.express.use('/consults', consultrouter);
         this.logger.info("Kindness route loaded");
     }
 }
