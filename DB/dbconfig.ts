@@ -1,11 +1,22 @@
 
 //Configure connection to sql server
-const sqlConfig = {
+/*const sqlConfig = {
   server: '192.168.0.11',
   port: 2224,
   user: "sa",
   password: "sCVa#sdfD324a",
   database: "aseni",
+  options: {
+    trustServerCertificate: true,
+    enableArithAbort: true
+  }
+}*/
+const sqlConfig = {
+  server: 'NIKOF',
+  port: 1433,
+  user: "sa",
+  password: "admin",
+  database: "pruebas",
   options: {
     trustServerCertificate: true,
     enableArithAbort: true
