@@ -2,8 +2,8 @@
 //Configure connection to sql server
 const sqlConfig = {
   server: '192.168.0.11',
-  port: 2223,
-  user: "niko",
+  port: 2224,
+  user: "sa",
   password: "sCVa#sdfD324a",
   database: "aseni",
   options: {

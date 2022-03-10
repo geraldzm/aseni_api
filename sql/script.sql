@@ -217,8 +217,7 @@ begin
 
     set @parties = @parties - 1
 end
-
-
+GO
 
 -- INSERT SCORES
 DECLARE
@@ -238,9 +237,10 @@ begin
     where usr_id = @usr
     order by dId;
 
-    begin
-        set @deliCant = FLOOR(RAND()*((select count(*) from #deliverable_id)+1)); --Deliveries to calificate
+    select @deliCant = count(*) from #deliverable_id;
+    set @deliCant = FLOOR(RAND()*(@deliCant+1)); --Deliveries to calificate
 
+    BEGIN
         while @deliCant > 0 --Deliveries to calificate
         begin
 
@@ -253,17 +253,37 @@ begin
             @usr);
 
             --Update score deliberables
-            update deliverables set score = score + @random where deliverable_id = @d_id;
             delete from #deliverable_id where dId = @d_id;
             set @deliCant = @deliCant - 1;
 
         end
-        drop table #deliverable_id;
-    end
+    END
+    drop table #deliverable_id;
 
     set @usr = @usr - 1
 end
+GO
 
+
+drop procedure if exists updateAllDeliverableScores;
+go
+create procedure updateAllDeliverableScores
+AS BEGIN
+
+    WITH U AS (select d.deliverable_id, SUM(ds.score) / COUNT(*) as uScore
+    from deliverables d
+    inner join dbo.deliverable_scores ds on d.deliverable_id = ds.deliverable_id
+    group by d.deliverable_id )
+
+    UPDATE deliverables SET
+    score = uScore
+    from deliverables d
+    inner join U v on d.deliverable_id = v.deliverable_id;
+
+end
+go
+
+exec updateAllDeliverableScores; -- update scores
 
 -- ############################################################ QUERIES ############################################################
 
@@ -315,3 +335,28 @@ FROM (
           COUNT (clasification)
           FOR clasification IN ([0], [1], [2])
      ) piv
+
+-- Query 3
+-- Listar por año, los 3 top meses
+-- del volumen de entregables por
+-- partido que estén relacionados
+-- a una lista de palabras
+-- proporcionadas
+---------> rank, datepart, full text
+CREATE FULLTEXT CATALOG catalog_actions;
+go
+CREATE UNIQUE INDEX index_actions ON actions(action);
+go
+
+CREATE FULLTEXT INDEX ON dbo.actions
+(
+    action
+    Language 1033        --1033 is the LCID for English - United States
+)
+KEY INDEX index_actions ON catalog_actions
+WITH CHANGE_TRACKING AUTO
+GO
+
+SELECT FULLTEXTSERVICEPROPERTY('IsFullTextInstalled')
+AS [FULLTEXTSERVICE]
+
