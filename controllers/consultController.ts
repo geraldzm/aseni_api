@@ -1,20 +1,17 @@
-import { consultData } from '../repositories/data_consult'
+import { ConsultData } from '../repositories';
 import { Logger } from '../common'
 
-
 export class ConsultController {
+    
     private static instance: ConsultController;
+
     private log: Logger;
+    private rep: ConsultData;
 
     private constructor()
     {
         this.log = new Logger();
-        try
-        {
-        } catch (e)
-        {
-            this.log.error(e);
-        }
+        this.rep = new ConsultData();
     }
 
     public static getInstance() : ConsultController
@@ -26,27 +23,19 @@ export class ConsultController {
         return this.instance;
     }
 
-    public async test() : Promise<any> 
+    public query1() : Promise<any> 
     {
-        const model = new consultData();
-        return model.testConec();
-    }
-    
-    public async query1F() : Promise<any> 
-    {
-        const model = new consultData();
-        return model.query1F();
+        return this.rep.query1();
     }
 
-    public async query1S() : Promise<any> 
+    public query2() : Promise<any> 
     {
-        const model = new consultData();
-        return model.query1S();
+        return this.rep.query2();
     }
 
-    public async query2() : Promise<any> 
+    public query3(words: string) : Promise<any> 
     {
-        const model = new consultData();
-        return model.query2();
+        return this.rep.query3(words);
     }
+
 }

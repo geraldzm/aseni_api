@@ -1,24 +1,18 @@
 
 //Configure connection to sql server
-/*const sqlConfig = {
-  server: '192.168.0.11',
+const sqlConfig = {
+  server: 'localhost',
   port: 2224,
   user: "sa",
-  password: "sCVa#sdfD324a",
+  password: "CkdKDf#ievNdalcsq@dfs",
   database: "aseni",
+  pool: {
+    max: 3,
+    min: 1,
+    idleTimeoutMillis: 30000
+  },
   options: {
-    trustServerCertificate: true,
-    enableArithAbort: true
-  }
-}*/
-const sqlConfig = {
-  server: 'NIKOF',
-  port: 1433,
-  user: "sa",
-  password: "admin",
-  database: "pruebas",
-  options: {
-    trustServerCertificate: true,
+    trustServerCertificate: true, // local development
     enableArithAbort: true
   }
 }

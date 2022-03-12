@@ -1,72 +1,68 @@
-
-//Sql server
 const sql = require('mssql');
 import {sqlConfig} from "../DB/dbconfig"
-//Sql server
 
-export class consultData {
+import { Logger } from '../common'
+import e = require("express");
 
-    public constructor(){}
 
-    public testConec() : Promise<any>
+export class ConsultData {
+
+    private log: Logger;
+
+    public constructor()
     {
-        const test = new Promise(async function(resolve, rejected) {
+        this.log = new Logger();
+    }
+
+
+    public query1() : Promise<any> {
+        return new Promise(async function(resolve, rejected) {
             try {
-                // make sure that any items are correctly URL encoded in the connection string
-                var conection =  await sql.connect(sqlConfig)//sql config esta dbconfig.ts
-                var result =  await conection.request().query('select * from usrs')
-                resolve(result.recordsets);
+
+                var conection =  await sql.connect(sqlConfig);
+                var result =  await conection.request().query('select * from qr1');
+
+                resolve(result);
+
             } catch (err) {
                 rejected(err);
             }
         });
-
-        return test;
     }
 
-    public query1F() : Promise<any>
-    {
-        const test = new Promise(async function(resolve, rejected) {
+    
+    public query2() : Promise<any> {
+        return new Promise(async function(resolve, rejected) {
             try {
-                // make sure that any items are correctly URL encoded in the connection string
-                var conection =  await sql.connect(sqlConfig)//sql config esta dbconfig.ts
-                var result =  await conection.request().query('select * from qr1')
-                resolve(result.recordsets);
+
+                var conection =  await sql.connect(sqlConfig);
+                var result =  await conection.request().query('select * from qr2');
+
+                resolve(result);
+
             } catch (err) {
                 rejected(err);
             }
         });
-        return test;
     }
 
-    public query1S() : Promise<any>
+
+    public query3(words: string) : Promise<any>
     {
-        const test = new Promise(async function(resolve, rejected) {
+        this.log.info('fetching words: ' + words);
+
+        return new Promise(async function(resolve, rejected) {
             try {
-                // make sure that any items are correctly URL encoded in the connection string
-                var conection =  await sql.connect(sqlConfig)//sql config esta dbconfig.ts
-                var result =  await conection.request().query('select * from qr1Second')
-                resolve(result.recordsets);
+
+                var conection =  await sql.connect(sqlConfig);
+                var result =  await conection.request().query('exec qr3 @words =' + words);
+
+                resolve(result);
+
             } catch (err) {
                 rejected(err);
             }
         });
-        return test;
     }
 
-    public query2() : Promise<any>
-    {
-        const test = new Promise(async function(resolve, rejected) {
-            try {
-                // make sure that any items are correctly URL encoded in the connection string
-                var conection =  await sql.connect(sqlConfig)//sql config esta dbconfig.ts
-                var result =  await conection.request().query('select * from qr2')
-                resolve(result.recordsets);
-            } catch (err) {
-                rejected(err);
-            }
-        });
-        
-        return test;
-    }
 }

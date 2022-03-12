@@ -1,0 +1,1 @@
+export { ConsultData } from './data_consult'

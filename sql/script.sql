@@ -1,3 +1,6 @@
+use aseni
+go
+
 -- ############################################################ DATABASE ############################################################
 DROP TABLE IF EXISTS usrs;
 CREATE TABLE [usrs] (
@@ -125,7 +128,8 @@ GO
 
 insert into rols (name) values ('manager'), ('user');
 insert into cantons (name) values ('Alajuela'), ('Cartago'), ('San jose'), ('Grecia'), ('Paraíso'), ('El Guarco'), ('Oreamuno'), ('Jimenez'), ('Alvarado'), ('Turrialba');
-insert into kpi_types (name) values  ('Km'), ('Escuelas'), ('Startups'), ('Vacunas'), ('Jobs'), ('Ebais');
+insert into kpi_types (name) values  ('Km'), ('Escuelas'), ('Startups'), ('Vacunas'), ('Ebais'), ('trabajos');
+
 
 insert into political_parties (name, flag_image) values
 ('PLN', 'https://PLN'), ('PSD', 'https://PSD'), ('PAC', 'https://PAC'),
@@ -160,13 +164,12 @@ insert into usrs (rol_id, name, bio, id,canton_id) values
 (2, 'Jaimico Liendra', 'Administador',442321,9);
 
 insert into actions (action) values
-('Asfaltado o restauracion de las carretera'),
+('Asfaltado o restauracion de las carreteras'),
 ('Construcción de escuelas'),
 ('Creación de empresas tecnológicas'),
-
-('Vacuntar a toda la población'),
-('Construir Ebais'),
-('Generar 1000 empleos');
+('Vacunar contra el COVID'),
+('Construcción Ebais'),
+('Generar empleos');
 
 --8 de mayo del 2022
 insert into governmet_periods (start,[end]) values
@@ -284,7 +287,7 @@ end
 go
 
 exec updateAllDeliverableScores; -- update scores
-
+go
 -- ############################################################ QUERIES ############################################################
 
 -- Query 1
@@ -293,20 +296,9 @@ exec updateAllDeliverableScores; -- update scores
 -- días de gobierno, pero que no
 -- recibirán nada en los últimos  100
 ---------> except, intersect, set difference, datepart
-DROP VIEW IF EXISTS qr1First
+DROP VIEW IF EXISTS qr1
 GO
-CREATE VIEW qr1First as
-    select
-    distinct c.name --, gp.start, d.deadline
-    from deliverables d
-    inner join cantons c on d.canton_id = c.canton_id
-    inner join governmet_periods gp on d.governmet_period_id = gp.governmet_period_id
-    where deadline between gp.start and DATEADD(DAY, 100, gp.start)
-GO
-
-DROP VIEW IF EXISTS qr1Second
-GO
-CREATE VIEW qr1Second as
+CREATE VIEW qr1 as
 select
 distinct c.name --, gp.start, d.deadline
 from deliverables d
@@ -319,9 +311,8 @@ distinct c.name-- , gp.[end], d.deadline
 from deliverables d
 inner join cantons c on d.canton_id = c.canton_id
 inner join governmet_periods gp on d.governmet_period_id = gp.governmet_period_id
-where deadline between DATEDIFF(DAY, 100, gp.[end])  and gp.[end]
+where deadline between DATEDIFF(DAY, 100, gp.[end])  and gp.[end];
 GO
-
 
 -- Query 2
 -- Para una misma acción en un
@@ -361,6 +352,8 @@ FROM (
 -- a una lista de palabras
 -- proporcionadas
 ---------> rank, datepart, full text
+
+-- drop fulltext catalog  if exists catalog_actions;
 CREATE FULLTEXT CATALOG catalog_actions;
 go
 CREATE UNIQUE INDEX index_actions ON actions(action);
@@ -375,6 +368,64 @@ KEY INDEX index_actions ON catalog_actions
 WITH CHANGE_TRACKING AUTO
 GO
 
-SELECT FULLTEXTSERVICEPROPERTY('IsFullTextInstalled')
-AS [FULLTEXTSERVICE]
+-- SELECT FULLTEXTSERVICEPROPERTY('IsFullTextInstalled')
+-- AS [FULLTEXTSERVICE]
+
+-- ALL
+select * from actions;
+
+-- CONTAINS
+select * from actions
+WHERE CONTAINS (action, 'construcción');
+
+-- FREETEXT
+select * from actions
+WHERE FREETEXT(action, 'construcción de');
+
+--------------------
+
+-- CONTAINSTABLE
+select * from CONTAINSTABLE(actions, action, 'construcción or de')
+order by rank desc;
+
+
+-- FREETEXTTABLE
+select * from FREETEXTTABLE(actions, action, 'construcción las')
+order by rank desc;
+
+--- Query 3:
+drop procedure if exists qr3;
+create procedure qr3 (@words varchar(256))
+as
+begin
+
+    WITH R as (
+    SELECT
+           pp.name as partido,
+           datepart(year, deadline) as year,
+           datepart(month , deadline) as month ,
+           count(deliverable_id) as deliverables,
+           RANK() OVER ( PARTITION BY pp.name, datepart(year, deadline) order by count(deliverable_id) desc ) as rank
+    FROM deliverables d
+    INNER JOIN plans p on d.plan_id = p.plan_id
+    INNER JOIN political_parties pp on p.pp_id = pp.pp_id
+    INNER JOIN actions a on d.action_id = a.action_id
+    WHERE FREETEXT(action, @words)
+    GROUP BY pp.name, datepart(year, deadline), datepart(month , deadline)
+    --order by partido, year, rank
+    )
+
+    select
+        partido, year, month,
+           (100 * deliverables) / SUM(deliverables) OVER (PARTITION BY partido, year) as percentage
+    from R
+    where rank < 4 order by partido, year, rank;
+end
+
+
+
+-- exec qr3 @words = 'construcción';
+-- select * from actions;
+
+--  CONTAINS, FREETEXT, CONTAINSTABLE, and FREETEXTTABLE
 
