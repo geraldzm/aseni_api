@@ -357,7 +357,7 @@ FROM (
 -- proporcionadas
 ---------> rank, datepart, full text
 
-DROP FULLTEXT CATALOG if exits catalog_actions;
+-- DROP FULLTEXT CATALOG if exists catalog_actions;
 go
 CREATE FULLTEXT CATALOG catalog_actions;
 go
@@ -479,9 +479,6 @@ end
 GO
 
 
-
-
-
 --- Query 5:
 -- Reporte de niveles de
 -- satisfacción por partido por
@@ -492,4 +489,28 @@ GO
 -- los mismos porcentajes.
 -------> pivot tables, roll up
 -- columnas --> Partido, cantón, %insatisfechos, %medianamente satisfechos, %de muy satisfechos, sumarizado
+SELECT partido, canton,
+AVG([0] * 100 / ([0] + [1] + [2]) ) as 'insatisfechos',
+AVG([1]* 100 / ([0] + [1] + [2]) ) as 'medianamente satis',
+AVG([2] * 100 / ([0] + [1] + [2]) ) as 'muy satisfechos',
+AVG(100) as total
+FROM (
+    SELECT pp.name as partido,
+        c.name as canton,
+        CASE
+            WHEN d.score <= 33 THEN 0
+            WHEN d.score <= 66 THEN 1
+            ELSE 2
+            END as clasification
+    FROM deliverables d
+        INNER JOIN plans p on d.plan_id = p.plan_id
+        INNER JOIN  cantons c on d.canton_id = c.canton_id
+        INNER JOIN political_parties pp on p.pp_id = pp.pp_id
+        INNER JOIN actions a on d.action_id = a.action_id
+ ) d
+pivot (
+    COUNT (clasification)
+    FOR clasification IN ([0], [1], [2])
+ ) piv
+group by rollup (partido, canton);
 
