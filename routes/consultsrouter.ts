@@ -9,7 +9,7 @@ app.get("/query1", (req, res, next) => {
 
     ConsultController.getInstance().query1()
     .then((data : any)=>{
-        res.json(data);
+        res.json(data['recordsets']);
     })
     .catch((err: any)=>{
         log.error(err);
@@ -22,7 +22,7 @@ app.get("/query2", (req, res, next) => {
 
     ConsultController.getInstance().query2()
     .then((data : any)=>{
-        res.json(data);
+        res.json(data['recordsets']);
     })
     .catch((err: any)=>{
         log.error(err);
@@ -35,7 +35,7 @@ app.get("/query3", (req, res, next) => {
 
     ConsultController.getInstance().query3(req.body['words'])
     .then((data : any)=>{
-        res.json(data);
+        res.json(data['recordsets']);
     })
     .catch((err: any)=>{
         log.error(err);

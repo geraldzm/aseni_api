@@ -1,71 +1,30 @@
-const sql = require('mssql');
-import {sqlConfig} from "../DB/dbconfig"
 import { Logger } from '../common'
+import app from "../app";
 
 
 export class ConsultData {
 
     private log: Logger;
 
-    public constructor()
-    {
+    public constructor() {
         this.log = new Logger();
     }
 
 
-    public query1() : Promise<any> {
-        return new Promise(async function(resolve, rejected) {
-            try {
-
-                var conection =  await sql.connect(sqlConfig);
-                var result =  await conection.request().query('select * from qr1');
-
-                resolve(result);
-
-            } catch (err) {
-                rejected(err);
-            }
-        });
-    }
-
-    
-    public query2() : Promise<any> {
-        return new Promise(async function(resolve, rejected) {
-            try {
-
-                var conection =  await sql.connect(sqlConfig);
-                var result =  await conection.request().query('select * from qr2');
-
-                resolve(result);
-
-            } catch (err) {
-                rejected(err);
-            }
-        });
+    public query1(): Promise<any> {
+        return app.locals.db.query('select * from qr1');
     }
 
 
-    public query3(words: string) : Promise<any>
-    {
+    public query2(): Promise<any> {
+        return app.locals.db.query('select * from qr2');
+    }
+
+
+    public query3(words: string): Promise<any> {
         this.log.info('fetching words: ' + words);
-
-
-        return sql.connect(sqlConfig).then( console.log("hello"));
-
-        // return new Promise(async function(resolve, rejected) {
-        //     try {
-
-        //         var conection =  await sql.connect(sqlConfig);
-        //         sql.connect(sqlConfig);
-
-        //         var result =  await conection.request().query('exec qr3 @words =' + words);
-
-        //         resolve(result);
-
-        //     } catch (err) {
-        //         rejected(err);
-        //     }
-        // });
+        return app.locals.db.query('exec qr3 @words =' + words);
     }
 
 }
+
