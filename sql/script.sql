@@ -252,10 +252,9 @@ begin
         begin
 
             select top 1 @d_id = dId from #deliverable_id; --get delivery id
-            set @random = FLOOR(RAND()*(100+1));--  random number between 100 and 0
             insert into deliverable_scores (score, checksum, deliverable_id, usr_id)
             values (@random,
-            ABS(CHECKSUM(@random,@usr,@random,@deliCant,@d_id, 'myPrivateKey(sdfjlxkc#j123v)')),
+            ABS(CHECKSUM(@usr,@d_id, 'myPrivateKey(sdfjlxkc#j123v)')),
             @d_id,
             @usr);
 
@@ -513,4 +512,77 @@ pivot (
     FOR clasification IN ([0], [1], [2])
  ) piv
 group by rollup (partido, canton);
+
+-----------------------------------------------------------
+
+--Dada un usuario ciudadano y un
+--plan de un partido, recibir una
+--lista de entregables para su
+--cantón y las respectivas
+--calificaciones de satisfacción
+--para ser guardadas en forma
+--transaccional. 
+
+-- Create an User Defined Table Type
+CREATE TYPE EntregableTVP AS TABLE(
+  deliverable_id int,
+  score          smallint)
+GO
+
+
+CREATE PROCEDURE query6 @usr int, @plan int, @TVP EntregableTVP READONLY
+AS
+Declare
+    IF (select count(*)
+        from (
+            select distinct d.canton_id
+              from @TVP t
+                       inner join deliverables d on d.deliverable_id = t.deliverable_id
+                       inner join cantons c on c.canton_id = d.canton_id
+              EXCEPT
+              select distinct canton_id
+              from usrs u
+              where usr_id = @usr) as confirm
+       ) = 0
+    --All delivery belong to User's Canton
+    begin
+                        --transactions              --read committed
+        SET NOCOUNT ON SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+        BEGIN TRY
+            BEGIN TRANSACTION SaveInfo
+                MERGE deliverable_scores AS Old
+                USING @TVP AS New
+                ON Old.deliverable_id = New.deliverable_id
+                WHEN NOT MATCHED BY Target THEN
+                    INSERT (score, checksum, deliverable_id, usr_id) --Insert into pruebas (Old)
+                    values (New.score,
+                            ABS(CHECKSUM(@usr, New.deliverable_id, 'myPrivateKey(sdfjlxkc#j123v)')),
+                            New.deliverable_id,
+                            @usr);
+            COMMIT TRANSACTION SaveInfo
+            SELECT '200 OK';
+        END TRY
+        --transaction error handling
+        BEGIN CATCH
+            SELECT ERROR_NUMBER()    AS NumeroError,
+                   ERROR_STATE()     AS EstadoError,
+                   ERROR_SEVERITY()  AS SeveridadError,
+                   ERROR_PROCEDURE() AS ErrorDeProcedimiento,
+                   ERROR_LINE()      AS LineaError,
+                   ERROR_MESSAGE()   AS MensajeError
+
+            -- Non committable transaction.
+            IF (XACT_STATE()) = -1
+                ROLLBACK TRANSACTION SaveInfo
+
+            -- Committable transaction.
+            IF (XACT_STATE()) = 1
+                COMMIT TRANSACTION SaveInfo
+
+        END CATCH
+    end
+        --At least 1 delivery doesn't exist in User's Canton
+    else
+        Select '401'
+GO
 
