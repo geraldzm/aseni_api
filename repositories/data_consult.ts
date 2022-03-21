@@ -1,8 +1,6 @@
 const sql = require('mssql');
 import {sqlConfig} from "../DB/dbconfig"
-
 import { Logger } from '../common'
-import e = require("express");
 
 
 export class ConsultData {
@@ -51,18 +49,23 @@ export class ConsultData {
     {
         this.log.info('fetching words: ' + words);
 
-        return new Promise(async function(resolve, rejected) {
-            try {
 
-                var conection =  await sql.connect(sqlConfig);
-                var result =  await conection.request().query('exec qr3 @words =' + words);
+        return sql.connect(sqlConfig).then( console.log("hello"));
 
-                resolve(result);
+        // return new Promise(async function(resolve, rejected) {
+        //     try {
 
-            } catch (err) {
-                rejected(err);
-            }
-        });
+        //         var conection =  await sql.connect(sqlConfig);
+        //         sql.connect(sqlConfig);
+
+        //         var result =  await conection.request().query('exec qr3 @words =' + words);
+
+        //         resolve(result);
+
+        //     } catch (err) {
+        //         rejected(err);
+        //     }
+        // });
     }
 
 }

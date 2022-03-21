@@ -1,3 +1,7 @@
+drop database if exists aseni
+go
+create database aseni
+go
 use aseni
 go
 
@@ -196,7 +200,7 @@ begin
 
         set @deliveries = FLOOR(RAND()*(12-3+1))+3; -- 3 >= @deliveries <= 12
 
-        while @deliveries > 0 -- 3 to 12 deliveries per action
+        while @deliveries > 0  and (select count(*) from #canton_ids) > 0 -- 3 to 12 deliveries per action
         begin
 
             select top 1 @c = canton_id from #canton_ids;
@@ -353,7 +357,8 @@ FROM (
 -- proporcionadas
 ---------> rank, datepart, full text
 
--- drop fulltext catalog  if exists catalog_actions;
+DROP FULLTEXT CATALOG if exits catalog_actions;
+go
 CREATE FULLTEXT CATALOG catalog_actions;
 go
 CREATE UNIQUE INDEX index_actions ON actions(action);
@@ -421,6 +426,9 @@ begin
     from R
     where rank < 4 order by partido, year, rank;
 end
+GO
+
+
 
 
 
@@ -428,4 +436,60 @@ end
 -- select * from actions;
 
 --  CONTAINS, FREETEXT, CONTAINSTABLE, and FREETEXTTABLE
+
+---------------------------------------------------
+--- Query 4:
+-- Ranking por partido con
+-- mayores niveles de satisfacción
+-- en su plan en forma global pero
+-- cuya acción tenga el mismo
+-- comportamiento para todos los
+-- cantones donde habrá un
+-- entregable. Se consideran
+-- aceptables al top 30% de las
+-- calificaciones de satisfacción.
+-------> Rank, except, intersect, pivot, tables, rank
+-- columnas --> Partido, % aceptación, posición, nota máxima obtenida
+create procedure qr4
+as
+begin
+    WITH A as (
+        select
+            pp.name          as partido,
+            a.action        as action,
+            AVG(d.score)       as acceptance,
+            MAX(d.score)       as notaMax,
+            MAX(d.score) - 30 as minActable, -- minimo acceptable
+            RANK() OVER ( PARTITION BY pp.name order by AVG(d.score) desc ) as rank, -- ranking de las acciones para un partido
+            MIN(d.score)  as min -- minimo de esa accion
+        from deliverables d
+                 inner JOIN actions a on a.action_id = d.action_id
+                 inner join plans p on d.plan_id = p.plan_id
+                 inner join political_parties pp on p.pp_id = pp.pp_id
+        group by pp.name, a.action
+    )
+    select
+        partido,
+        acceptance,
+        rank,
+        notaMax
+    from A
+    where min >= minActable;
+end
+GO
+
+
+
+
+
+--- Query 5:
+-- Reporte de niveles de
+-- satisfacción por partido por
+-- cantón ordenados por mayor
+-- calificación a menor y por
+-- partido. Finalmente agregando
+-- un sumarizado por partido de
+-- los mismos porcentajes.
+-------> pivot tables, roll up
+-- columnas --> Partido, cantón, %insatisfechos, %medianamente satisfechos, %de muy satisfechos, sumarizado
 
