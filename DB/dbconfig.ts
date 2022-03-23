@@ -1,7 +1,7 @@
 
 //Configure connection to sql server
 const sqlConfig = {
-  server: 'localhost',
+  server: '192.168.0.11',
   port: 2224,
   user: "sa",
   password: "CkdKDf#ievNdalcsq@dfs",

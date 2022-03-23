@@ -44,4 +44,44 @@ app.get("/query3", (req, res, next) => {
 
 });
 
+
+app.get("/query4", (req, res, next) => {
+
+    ConsultController.getInstance().query4()
+    .then((data : any)=>{
+        res.json(data['recordsets']);
+    })
+    .catch((err: any)=>{
+        log.error(err);
+        res.sendStatus(500); // internal error
+    });
+
+});
+
+app.get("/query5", (req, res, next) => {
+
+    ConsultController.getInstance().query5()
+    .then((data : any)=>{
+        res.json(data['recordsets']);
+    })
+    .catch((err: any)=>{
+        log.error(err);
+        res.sendStatus(500); // internal error
+    });
+
+});
+
+app.get("/query6", (req, res, next) => {
+
+    ConsultController.getInstance().query6( req.body['user'], req.body['plan'], req.body['list'])
+    .then((data : any)=>{
+        res.json(data['recordsets']);
+    })
+    .catch((err: any)=>{
+        log.error(err);
+        res.sendStatus(500); // internal error
+    });
+
+});
+
 export { app as consultrouter };

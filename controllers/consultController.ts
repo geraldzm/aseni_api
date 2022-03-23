@@ -43,4 +43,14 @@ export class ConsultController {
         return this.rep.query5();
     }
 
+
+    public query4() : Promise<any> 
+    {
+        return this.rep.query4();
+    }
+
+    public query6(user: number, plan: number,list: any) : Promise<any> 
+    {
+        return this.rep.query6(user, plan, list);
+    }
 }

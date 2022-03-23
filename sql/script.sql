@@ -537,7 +537,6 @@ GO
 
 CREATE PROCEDURE query6 @usr int, @plan int, @TVP EntregableTVP READONLY
 AS
-Declare
     IF (select count(*)
         from (
             select distinct d.canton_id
@@ -565,7 +564,6 @@ Declare
                             New.deliverable_id,
                             @usr);
             COMMIT TRANSACTION SaveInfo
-            SELECT '200 OK';
         END TRY
         --transaction error handling
         BEGIN CATCH
@@ -588,6 +586,6 @@ Declare
     end
         --At least 1 delivery doesn't exist in User's Canton
     else
-        Select '401'
+        Select 'At least 1 delivery doesnt exist in Users Canton'
 GO
 

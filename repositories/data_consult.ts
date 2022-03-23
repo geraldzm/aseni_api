@@ -33,5 +33,30 @@ export class ConsultData {
     public query4(): Promise<any> {
         return app.locals.db.query('exec qr4');
     }
+    
+    public query6(user: number,plan: number,list: any): Promise<any> {
+        let insert = '';
+		try {
+			list.forEach(function(element: number, index: number, array: any) {
+				let next = index+1
+				if((next % 2) != 0) {
+					insert += '('+element+','+list[next]+'),';
+				}
+				if(next == list.length-1) {
+					throw 'Break';;
+				}
+			})
+		} catch (e) {
+			if (e !== 'Break') throw e
+		}
+		insert =  insert.substring(0, insert.length - 1)
+       
+        return app.locals.db.query(
+            'DECLARE @tvp AS EntregableTVP '+
+            'INSERT INTO @tvp '+
+            'Values '+insert+' '+
+		    'Exec query6 '+user+', '+plan+',@tvp'
+            );
+    }
 }
 
