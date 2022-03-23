@@ -38,4 +38,8 @@ export class ConsultController {
         return this.rep.query3(words);
     }
 
+    public query6(user: number,plan: number,list: any) : Promise<any> 
+    {
+        return this.rep.query6(user,plan,list);
+    }
 }
