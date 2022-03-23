@@ -488,6 +488,9 @@ GO
 -- los mismos porcentajes.
 -------> pivot tables, roll up
 -- columnas --> Partido, cantón, %insatisfechos, %medianamente satisfechos, %de muy satisfechos, sumarizado
+DROP VIEW IF EXISTS qr5
+GO
+CREATE VIEW qr5 as
 SELECT partido, canton,
 AVG([0] * 100 / ([0] + [1] + [2]) ) as 'insatisfechos',
 AVG([1]* 100 / ([0] + [1] + [2]) ) as 'medianamente satis',
@@ -512,6 +515,8 @@ pivot (
     FOR clasification IN ([0], [1], [2])
  ) piv
 group by rollup (partido, canton);
+end
+GO
 
 -----------------------------------------------------------
 

@@ -38,4 +38,9 @@ export class ConsultController {
         return this.rep.query3(words);
     }
 
+    public query5() : Promise<any> 
+    {
+        return this.rep.query5();
+    }
+
 }

@@ -26,5 +26,12 @@ export class ConsultData {
         return app.locals.db.query('exec qr3 @words =' + words);
     }
 
+    public query5(): Promise<any> {
+        return app.locals.db.query('select * from qr5');
+    }
+
+    public query4(): Promise<any> {
+        return app.locals.db.query('exec qr4');
+    }
 }
 
